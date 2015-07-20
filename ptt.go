@@ -100,21 +100,32 @@ func parsePttBoardIndex(page int) (hrefs []string) {
 		log.Fatal(err)
 	}
 	hrefs = make([]string, 0)
+	maxPageNumberString := ""
+	var PageWebSide string
+	if page > 0 {
+		// Find page result
+		doc.Find(".btn-group a").Each(func(i int, s *goquery.Selection) {
+			if strings.Contains(s.Text(), "上頁") {
+				href, exist := s.Attr("href")
+				if exist {
+					targetString := strings.Split(href, "index")[1]
+					targetString = strings.Split(targetString, ".html")[0]
+					fmt.Println("total page:", targetString)
+					maxPageNumberString = targetString
+				}
+			}
+		})
+		pageNum, _ := strconv.Atoi(maxPageNumberString)
+		pageNum = pageNum - page
+		PageWebSide = fmt.Sprintf("https://www.ptt.cc/bbs/Beauty/index%d.html", pageNum)
+	} else {
+		PageWebSide = "https://www.ptt.cc/bbs/Beauty/index.html"
+	}
 
-	// Print result list
-	doc.Find(".btn-group a").Each(func(i int, s *goquery.Selection) {
-		if strings.Contains(s.Text(), "上頁") {
-			href, exist := s.Attr("href")
-			if exist {
-				log.Info("上頁:", href)
-			}
-		} else if strings.Contains(s.Text(), "下頁") {
-			href, exist := s.Attr("href")
-			if exist {
-				log.Info("下頁:", href)
-			}
-		}
-	})
+	doc, err = goquery.NewDocument(PageWebSide)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	doc.Find(".r-ent").Each(func(i int, s *goquery.Selection) {
 		title := strings.TrimSpace(s.Find(".title").Text())
