@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/user"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -53,7 +54,8 @@ func worker(destDir string, linkChan chan string, wg *sync.WaitGroup) {
 		bounds := m.Bounds()
 		if bounds.Size().X > 300 && bounds.Size().Y > 300 {
 			imgInfo := imageId.FindStringSubmatch(target)
-			out, err := os.Create(destDir + "/" + imgInfo[1] + "." + imgInfo[2])
+			finalPath := destDir + "/" + imgInfo[1] + "." + imgInfo[2]
+			out, err := os.Create(filepath.FromSlash(finalPath))
 			if err != nil {
 				log.Debug("os.Create\nerror: %s", err)
 				continue
@@ -76,16 +78,21 @@ func crawler(target string, workerNum int) {
 	}
 
 	//Title and folder
-	articleTitle := doc.Find(".article-metaline .article-meta-value").Text()
+	articleTitle := ""
+	doc.Find(".article-metaline").Each(func(i int, s *goquery.Selection) {
+		if strings.Contains(s.Find(".article-meta-tag").Text(), "標題") {
+			articleTitle = s.Find(".article-meta-value").Text()
+		}
+	})
 	dir := fmt.Sprintf("%v/%v - %v", baseDir, threadId.FindStringSubmatch(target)[1], articleTitle)
-	os.MkdirAll(dir, 0755)
+	os.MkdirAll(filepath.FromSlash(dir), 0755)
 
 	//Concurrecny
 	linkChan := make(chan string)
 	wg := new(sync.WaitGroup)
 	for i := 0; i < workerNum; i++ {
 		wg.Add(1)
-		go worker(dir, linkChan, wg)
+		go worker(filepath.FromSlash(dir), linkChan, wg)
 	}
 
 	//Parse Image, currently support <IMG SRC> only
@@ -209,7 +216,7 @@ func main() {
 					page = 0
 					hrefs = parsePttBoardIndex(page)
 				case "o":
-					open.Run(baseDir)
+					open.Run(filepath.FromSlash(baseDir))
 				case "d":
 					if len(args) == 0 {
 						fmt.Println("You don't input any article index. Input as 'd 1'")
