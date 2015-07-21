@@ -75,8 +75,8 @@ func crawler(target string, workerNum int) {
 		log.Fatal(err)
 	}
 
-	articleTitle := doc.Find(".article-metaline .article-meta-value").Text()
 	//Title and folder
+	articleTitle := doc.Find(".article-metaline .article-meta-value").Text()
 	dir := fmt.Sprintf("%v/%v - %v", baseDir, threadId.FindStringSubmatch(target)[1], articleTitle)
 	os.MkdirAll(dir, 0755)
 
@@ -89,14 +89,18 @@ func crawler(target string, workerNum int) {
 	}
 
 	//Parse Image, currently support <IMG SRC> only
+	foundImage := false
 	doc.Find(".richcontent").Each(func(i int, s *goquery.Selection) {
 		imgLink, exist := s.Find("img").Attr("src")
 		if exist {
 			linkChan <- "http:" + imgLink
-		} else {
-			fmt.Println("Don't have any image in this article.")
+			foundImage = true
 		}
 	})
+
+	if !foundImage {
+		fmt.Println("Don't have any image in this article.")
+	}
 
 	close(linkChan)
 	wg.Wait()
@@ -156,7 +160,6 @@ func parsePttBoardIndex(page int) (hrefs []string) {
 		}
 	}
 	fmt.Printf("(n:next, p:prev, quit: quit program.)\n")
-
 	return hrefs
 }
 
