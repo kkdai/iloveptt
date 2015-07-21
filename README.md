@@ -1,8 +1,12 @@
 iloveptt 我愛批踢踢
 ======================
-[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/kkdai/iloveptt/master/LICENSE)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/kkdai/iloveptt/master/LICENSE) [![Build Status](https://travis-ci.org/kkdai/iloveptt.svg)](https://travis-ci.org/kkdai/iloveptt)
 
-A ptt crawler client to browse broad news and download image if any default image in that article. This tool help you to download those photos for your backup, all the photos still own by original creator.
+
+A ptt crawler client to browse broad news and download image if any default image in that article. This tool help you to download those photos for your backup, all the photos still own by original creator. 
+
+- It support multiple platform such as "Windows 8.1" and "MacOS X".
+
 
 Install
 --------------
@@ -15,6 +19,10 @@ Usage
     iloveptt  
 
 All the photos will download to `USERS/Pictures/iloveptt` and it will separate folder by article name.
+
+For Windows user, it will store in your personal pictures folder.
+
+
 
 Options
 ---------------
