@@ -159,7 +159,7 @@ func parsePttBoardIndex(page int) (hrefs []string) {
 			}
 		}
 	}
-	fmt.Printf("(n:next, p:prev, quit: quit program.)\n")
+	fmt.Printf("(o: open file in fider, s: top page, n:next, p:prev, quit: quit program)\n")
 	return hrefs
 }
 
@@ -211,6 +211,11 @@ func main() {
 				case "o":
 					open.Run(baseDir)
 				case "d":
+					if len(args) == 0 {
+						fmt.Println("You don't input any article index. Input as 'd 1'")
+						continue
+					}
+
 					index, err := strconv.ParseUint(args[0], 0, 0)
 					if err != nil {
 						fmt.Println(err)
