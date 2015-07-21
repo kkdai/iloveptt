@@ -20,11 +20,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const BasePttAddress = "https://www.ptt.cc"
+const (
+	BasePttAddress = "https://www.ptt.cc"
+	EntryAddress   = "https://www.ptt.cc/bbs/Beauty/index.html"
+)
 
 var (
 	baseDir  string
-	threadId = regexp.MustCompile(`thread-(\d*)-`)
+	threadId = regexp.MustCompile(`M.(\d*).`)
 	imageId  = regexp.MustCompile(`([^\/]+)\.(png|jpg)`)
 	log      = logging.MustGetLogger("iloveck101")
 )
@@ -69,14 +72,15 @@ func worker(destDir string, linkChan chan string, wg *sync.WaitGroup) {
 func crawler(target string, workerNum int) {
 	doc, err := goquery.NewDocument(target)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
-	title := doc.Find("h1#thread_subject").Text()
-	dir := fmt.Sprintf("%v/%v - %v", baseDir, threadId.FindStringSubmatch(target)[1], title)
-
+	articleTitle := doc.Find(".article-metaline .article-meta-value").Text()
+	//Title and folder
+	dir := fmt.Sprintf("%v/%v - %v", baseDir, threadId.FindStringSubmatch(target)[1], articleTitle)
 	os.MkdirAll(dir, 0755)
 
+	//Concurrecny
 	linkChan := make(chan string)
 	wg := new(sync.WaitGroup)
 	for i := 0; i < workerNum; i++ {
@@ -84,18 +88,22 @@ func crawler(target string, workerNum int) {
 		go worker(dir, linkChan, wg)
 	}
 
-	doc.Find("div[itemprop=articleBody] img").Each(func(i int, img *goquery.Selection) {
-		imgUrl, _ := img.Attr("file")
-		linkChan <- imgUrl
+	//Parse Image, currently support <IMG SRC> only
+	doc.Find(".richcontent").Each(func(i int, s *goquery.Selection) {
+		imgLink, exist := s.Find("img").Attr("src")
+		if exist {
+			linkChan <- "http:" + imgLink
+		} else {
+			fmt.Println("Don't have any image in this article.")
+		}
 	})
 
 	close(linkChan)
 	wg.Wait()
 }
 
-// [todo] - Holy shit function, should refactor it!
 func parsePttBoardIndex(page int) (hrefs []string) {
-	doc, err := goquery.NewDocument("https://www.ptt.cc/bbs/Beauty/index.html")
+	doc, err := goquery.NewDocument(EntryAddress)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -119,7 +127,7 @@ func parsePttBoardIndex(page int) (hrefs []string) {
 		pageNum = pageNum - page
 		PageWebSide = fmt.Sprintf("https://www.ptt.cc/bbs/Beauty/index%d.html", pageNum)
 	} else {
-		PageWebSide = "https://www.ptt.cc/bbs/Beauty/index.html"
+		PageWebSide = EntryAddress
 	}
 
 	doc, err = goquery.NewDocument(PageWebSide)
@@ -133,7 +141,7 @@ func parsePttBoardIndex(page int) (hrefs []string) {
 		href, _ := s.Find(".title a").Attr("href")
 		link := BasePttAddress + href
 		hrefs = append(hrefs, link)
-		fmt.Printf("%d:推文[%d]-%s\n", i, likeCount, title)
+		fmt.Printf("%d:[%d★]%s\n", i, likeCount, title)
 	})
 
 	// Print pages
@@ -147,7 +155,7 @@ func parsePttBoardIndex(page int) (hrefs []string) {
 			}
 		}
 	}
-	fmt.Printf("(n:next, p:prev)\n")
+	fmt.Printf("(n:next, p:prev, quit: quit program.)\n")
 
 	return hrefs
 }
@@ -160,25 +168,12 @@ func main() {
 	usr, _ := user.Current()
 	baseDir = fmt.Sprintf("%v/Pictures/iloveptt", usr.HomeDir)
 
-	var postUrl string
 	var workerNum int
-
 	rootCmd := &cobra.Command{
 		Use:   "iloveptt",
 		Short: "Download all the images in given post url",
 		Run: func(cmd *cobra.Command, args []string) {
-			crawler(postUrl, workerNum)
-		},
-	}
-	rootCmd.Flags().StringVarP(&postUrl, "url", "u", "http://ck101.com/thread-2876990-1-1.html", "Url of post")
-	rootCmd.Flags().IntVarP(&workerNum, "worker", "w", 25, "Number of workers")
-
-	searchCmd := &cobra.Command{
-		Use:   "search",
-		Short: "Download all the images in given post url",
-		Run: func(cmd *cobra.Command, args []string) {
 			page := 0
-			// keyword := args[0]
 			hrefs := parsePttBoardIndex(page)
 
 			scanner := bufio.NewScanner(os.Stdin)
@@ -223,7 +218,6 @@ func main() {
 						continue
 					}
 
-					// Only support url with format ck101.com/thread-xxx
 					if threadId.Match([]byte(hrefs[index])) {
 						crawler(hrefs[index], 25)
 						fmt.Println("Done!")
@@ -237,6 +231,6 @@ func main() {
 		},
 	}
 
-	rootCmd.AddCommand(searchCmd)
+	rootCmd.Flags().IntVarP(&workerNum, "worker", "w", 25, "Number of workers")
 	rootCmd.Execute()
 }
