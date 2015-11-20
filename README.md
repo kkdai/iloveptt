@@ -102,6 +102,13 @@ Advertising
 
 If you want to browse facebook page on your iPhone, why not check my App here :p [粉絲相簿](https://itunes.apple.com/tw/app/fen-si-xiang-bu/id839324997?l=zh&mt=8)
 
+Gomobile for iloveptt?
+---------------
+
+Check my new package [PhotoMgr](https://github.com/kkdai/photomgr) if you want to use in iOS/Android.
+
+A simple iOS App for this is on [PhotoViewer](https://github.com/kkdai/PhotoViewer)
+
 Project52
 ---------------
 
