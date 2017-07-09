@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"image"
 	"image/jpeg"
-	"image/png"
 	"net/http"
 	"os"
 	"os/user"
@@ -61,12 +60,16 @@ func worker(destDir string, linkChan chan string, wg *sync.WaitGroup) {
 				continue
 			}
 			defer out.Close()
-			switch imgInfo[2] {
-			case "jpg":
-				jpeg.Encode(out, m, nil)
-			case "png":
-				png.Encode(out, m)
-			}
+			// 2017 update: only with jpeg format
+			jpeg.Encode(out, m, nil)
+			/*
+				switch imgInfo[2] {
+				case "jpg":
+					jpeg.Encode(out, m, nil)
+				case "png":
+					png.Encode(out, m)
+				}
+			*/
 		}
 	}
 }
@@ -95,12 +98,22 @@ func crawler(target string, workerNum int) {
 		go worker(filepath.FromSlash(dir), linkChan, wg)
 	}
 
-	//Parse Image, currently support <IMG SRC> only
+	/**
+	 * update: 2017 ptt Beauty always upload with imgur URL
+	 */
 	foundImage := false
-	doc.Find(".richcontent").Each(func(i int, s *goquery.Selection) {
-		imgLink, exist := s.Find("img").Attr("src")
-		if exist {
-			linkChan <- "http:" + imgLink
+	doc.Find("a").Each(func(i int, s *goquery.Selection) {
+		imgLink, _ := s.Attr("href")
+		//two case
+		if strings.Contains(imgLink, "http://i.imgur.com/") {
+			fmt.Println("my target image url: " + imgLink)
+			linkChan <- imgLink
+			foundImage = true
+		}
+		if strings.Contains(imgLink, "http://imgur.com/") {
+			imgLink = imgLink + ".jpg"
+			fmt.Println("my target image url: " + imgLink)
+			linkChan <- imgLink
 			foundImage = true
 		}
 	})
