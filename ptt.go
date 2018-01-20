@@ -260,21 +260,23 @@ func main() {
 						continue
 					}
 
-					index, err := strconv.ParseUint(args[0], 0, 0)
-					if err != nil {
-						fmt.Println(err)
-						continue
-					}
-					if int(index) >= len(hrefs) {
-						fmt.Println("Invalid index")
-						continue
-					}
+					for _, v := range args {
+						index, err := strconv.ParseUint(v, 0, 0)
+						if err != nil {
+							fmt.Println(err)
+							continue
+						}
+						if int(index) >= len(hrefs) {
+							fmt.Println("Invalid index:", v)
+							continue
+						}
 
-					if threadId.Match([]byte(hrefs[index])) {
-						crawler(hrefs[index], 25)
-						fmt.Println("Done!")
-					} else {
-						fmt.Println("Unsupport url:", hrefs[index])
+						if threadId.Match([]byte(hrefs[index])) {
+							crawler(hrefs[index], 25)
+							fmt.Println("Index:", v, " Done!")
+						} else {
+							fmt.Println("Unsupport url:", hrefs[index])
+						}
 					}
 				default:
 					fmt.Println("Unrecognized command:", cmd, args)
