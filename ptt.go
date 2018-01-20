@@ -7,9 +7,11 @@ import (
 	"image/jpeg"
 	"net/http"
 	"os"
+	"os/exec"
 	"os/user"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -31,6 +33,36 @@ var (
 	imageId  = regexp.MustCompile(`([^\/]+)\.(png|jpg)`)
 	log      = logging.MustGetLogger("iloveck101")
 )
+
+var clear map[string]func() //create a map for storing clear funcs
+
+func init() {
+	clear = make(map[string]func()) //Initialize it
+	clear["linux"] = func() {
+		cmd := exec.Command("clear") //Linux example, its tested
+		cmd.Stdout = os.Stdout
+		cmd.Run()
+	}
+	clear["windows"] = func() {
+		cmd := exec.Command("cmd", "/c", "cls") //Windows example, its tested
+		cmd.Stdout = os.Stdout
+		cmd.Run()
+	}
+	clear["darwin"] = func() {
+		cmd := exec.Command("clear") //Windows example, its tested
+		cmd.Stdout = os.Stdout
+		cmd.Run()
+	}
+}
+
+func CallClear() {
+	value, ok := clear[runtime.GOOS] //runtime.GOOS -> linux, windows, darwin etc.
+	if ok {                          //if we defined a clear func for that platform:
+		value() //we execute it
+	} else { //unsupported platform
+		panic("Your platform is unsupported! I can't clear terminal screen :(")
+	}
+}
 
 func worker(destDir string, linkChan chan string, wg *sync.WaitGroup) {
 	defer wg.Done()
@@ -60,16 +92,7 @@ func worker(destDir string, linkChan chan string, wg *sync.WaitGroup) {
 				continue
 			}
 			defer out.Close()
-			// 2017 update: only with jpeg format
 			jpeg.Encode(out, m, nil)
-			/*
-				switch imgInfo[2] {
-				case "jpg":
-					jpeg.Encode(out, m, nil)
-				case "png":
-					png.Encode(out, m)
-				}
-			*/
 		}
 	}
 }
@@ -98,21 +121,16 @@ func crawler(target string, workerNum int) {
 		go worker(filepath.FromSlash(dir), linkChan, wg)
 	}
 
-	/**
-	 * update: 2017 ptt Beauty always upload with imgur URL
-	 */
 	foundImage := false
 	doc.Find("a").Each(func(i int, s *goquery.Selection) {
 		imgLink, _ := s.Attr("href")
 		//two case
 		if strings.Contains(imgLink, "https://i.imgur.com/") {
-			fmt.Println("my target image url: " + imgLink)
 			linkChan <- imgLink
 			foundImage = true
 		}
 		if strings.Contains(imgLink, "https://imgur.com/") {
 			imgLink = imgLink + ".jpg"
-			fmt.Println("my target image url: " + imgLink)
 			linkChan <- imgLink
 			foundImage = true
 		}
@@ -197,6 +215,8 @@ func main() {
 		Use:   "iloveptt",
 		Short: "Download all the images in given post url",
 		Run: func(cmd *cobra.Command, args []string) {
+			CallClear()
+
 			page := 0
 			hrefs := parsePttBoardIndex(page)
 
@@ -219,14 +239,17 @@ func main() {
 				case "quit":
 					quit = true
 				case "n":
+					CallClear()
 					page = page + 1
 					hrefs = parsePttBoardIndex(page)
 				case "p":
+					CallClear()
 					if page > 0 {
 						page = page - 1
 					}
 					hrefs = parsePttBoardIndex(page)
 				case "s":
+					CallClear()
 					page = 0
 					hrefs = parsePttBoardIndex(page)
 				case "o":
