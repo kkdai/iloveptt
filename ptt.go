@@ -105,12 +105,12 @@ func crawler(target string, workerNum int) {
 	doc.Find("a").Each(func(i int, s *goquery.Selection) {
 		imgLink, _ := s.Attr("href")
 		//two case
-		if strings.Contains(imgLink, "http://i.imgur.com/") {
+		if strings.Contains(imgLink, "https://i.imgur.com/") {
 			fmt.Println("my target image url: " + imgLink)
 			linkChan <- imgLink
 			foundImage = true
 		}
-		if strings.Contains(imgLink, "http://imgur.com/") {
+		if strings.Contains(imgLink, "https://imgur.com/") {
 			imgLink = imgLink + ".jpg"
 			fmt.Println("my target image url: " + imgLink)
 			linkChan <- imgLink
