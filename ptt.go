@@ -148,8 +148,9 @@ func parsePttBoardIndex(page int) (hrefs []string) {
 			}
 		})
 		pageNum, _ := strconv.Atoi(maxPageNumberString)
-		pageNum = pageNum - page
+		pageNum = pageNum - page + 1
 		PageWebSide = fmt.Sprintf("https://www.ptt.cc/bbs/Beauty/index%d.html", pageNum)
+		fmt.Println("current page:", PageWebSide)
 	} else {
 		PageWebSide = EntryAddress
 	}
