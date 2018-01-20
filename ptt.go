@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"image"
 	"image/jpeg"
+	"image/png"
 	"net/http"
 	"os"
 	"os/exec"
@@ -77,8 +78,11 @@ func worker(destDir string, linkChan chan string, wg *sync.WaitGroup) {
 
 		m, _, err := image.Decode(resp.Body)
 		if err != nil {
-			log.Debug("image.Decode\nerror: %s\ntarget: %s", err, target)
-			continue
+			m, err = png.Decode(resp.Body)
+			if err != nil {
+				log.Debug("image.Decode\nerror: %s\ntarget: %s", err, target)
+				continue
+			}
 		}
 
 		// Ignore small images
