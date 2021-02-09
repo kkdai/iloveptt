@@ -1,6 +1,6 @@
 iloveptt 我愛批踢踢
 ======================
-[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/kkdai/iloveptt/master/LICENSE) [![Build Status](https://www.travis-ci.com/kkdai/iloveptt.svg?branch=master)](https://www.travis-ci.com/github/kkdai/iloveptt)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/kkdai/iloveptt/master/LICENSE) [![Build Status](https://www.travis-ci.com/kkdai/iloveptt.svg?branch=master)](https://www.travis-ci.com/github/kkdai/iloveptt) ![Go](https://github.com/kkdai/ck101-downloader/workflows/Go/badge.svg)
 
 
 A ptt crawler client to browse broad news and download image if any default image in that article. This tool help you to download those photos for your backup, all the photos still own by original creator. 
