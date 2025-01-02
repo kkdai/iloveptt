@@ -30,7 +30,8 @@ type NullWriter int
 func (NullWriter) Write([]byte) (int, error) { return 0, nil }
 
 func main() {
-
+	fmt.Println("------------------------------------")
+	fmt.Println("version:", GetVersion())
 	log.SetOutput(new(NullWriter))
 	ptt := NewPTT()
 
@@ -51,7 +52,7 @@ func main() {
 			quit := false
 
 			for !quit {
-				fmt.Print("ptt:> ")
+				fmt.Print("ptt: " + GetVersion() + ":>")
 
 				if !scanner.Scan() {
 					break
