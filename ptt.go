@@ -43,14 +43,14 @@ func main() {
 		Run: func(cmd *cobra.Command, args []string) {
 			page := 0
 			pagePostCoubt := 0
-			pagePostCoubt = ptt.ParsePttPageByIndex(page)
+			pagePostCoubt = ptt.ParsePttPageByIndex(page, false)
 			printPageResult(ptt, pagePostCoubt)
 
 			scanner := bufio.NewScanner(os.Stdin)
 			quit := false
 
 			for !quit {
-				fmt.Print("ptt: " + GetVersion() + ":>")
+				fmt.Print("ptt:>")
 
 				if !scanner.Scan() {
 					break
@@ -66,17 +66,17 @@ func main() {
 					quit = true
 				case "n":
 					page = page + 1
-					pagePostCoubt = ptt.ParsePttPageByIndex(page)
+					pagePostCoubt = ptt.ParsePttPageByIndex(page, false)
 					printPageResult(ptt, pagePostCoubt)
 				case "p":
 					if page > 0 {
 						page = page - 1
 					}
-					pagePostCoubt = ptt.ParsePttPageByIndex(page)
+					pagePostCoubt = ptt.ParsePttPageByIndex(page, false)
 					printPageResult(ptt, pagePostCoubt)
 				case "s":
 					page = 0
-					pagePostCoubt = ptt.ParsePttPageByIndex(page)
+					pagePostCoubt = ptt.ParsePttPageByIndex(page, false)
 					printPageResult(ptt, pagePostCoubt)
 				case "o":
 					open.Run(filepath.FromSlash(ptt.BaseDir))
